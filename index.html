@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grocery">
+<meta name="theme-color" content="#2D5A3D">
+<title>Sam & Alexa's Grocery List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --primary: #2D5A3D;
+    --primary-light: #E8F5E9;
+    --primary-dark: #1B3D28;
+    --accent: #E8735A;
+    --accent-light: #FFF0EC;
+    --text: #1A2E23;
+    --text-mid: #5A7A66;
+    --text-light: #8FA89A;
+    --border: rgba(45,90,61,0.1);
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --checked: #B8D4C0;
+    --sam: #4A90D9;
+    --alexa: #D94A8A;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: 90px;
+    padding-top: env(safe-area-inset-top, 0);
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 1.2rem 1.2rem 1rem;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 1.2rem);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+  }
+  .app-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+  .app-title span { color: var(--accent); }
+  .header-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .header-btn {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1.1rem;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .header-btn:hover { background: rgba(255,255,255,0.2); }
+  .header-btn.active { background: var(--accent); }
+
+  /* USER PICKER */
+  .user-picker {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+  }
+  .user-chip {
+    flex: 1;
+    padding: 0.45rem;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.6);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .user-chip.active-sam {
+    border-color: var(--sam);
+    background: rgba(74,144,217,0.2);
+    color: white;
+  }
+  .user-chip.active-alexa {
+    border-color: var(--alexa);
+    background: rgba(217,74,138,0.2);
+    color: white;
+  }
+
+  /* ADD INPUT */
+  .add-bar {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .add-input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-input::placeholder { color: rgba(255,255,255,0.35); }
+  .add-input:focus { border-color: rgba(255,255,255,0.4); }
+  .add-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent);
+    color: white;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    flex-shrink: 0;
+  }
+  .add-btn:active { transform: scale(0.92); }
+  .mic-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .mic-btn.recording { background: #E74C3C; animation: micPulse 1s ease infinite; }
+  @keyframes micPulse { 0%,100%{ opacity:1; } 50%{ opacity:0.6; } }
+
+  /* CATEGORY HINT */
+  .category-hint {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.4);
+    margin-top: 0.4rem;
+    min-height: 1rem;
+    padding-left: 0.2rem;
+  }
+  .category-hint em { color: var(--accent); font-style: normal; font-weight: 600; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1.2rem;
+  }
+  .stats-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-light);
+  }
+  .stats-text strong { color: var(--primary); }
+  .clear-done-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+  }
+  .clear-done-btn:hover { background: var(--accent-light); }
+
+  /* AISLE GROUPS */
+  .aisle-group {
+    margin: 0 1rem 0.8rem;
+  }
+  .aisle-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.3rem;
+    position: sticky;
+    top: 120px;
+    z-index: 10;
+    background: var(--bg);
+  }
+  .aisle-icon { font-size: 1.1rem; }
+  .aisle-name {
+    font-family: 'Fraunces', serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.3px;
+  }
+  .aisle-count {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-light);
+    background: var(--primary-light);
+    padding: 0.1rem 0.45rem;
+    border-radius: 8px;
+  }
+
+  /* ITEMS */
+  .item-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 0.7rem 0.8rem;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, opacity 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .item-card.checked {
+    opacity: 0.5;
+    background: #F5F5F0;
+    box-shadow: none;
+  }
+  .item-card.checked .item-name { text-decoration: line-through; color: var(--text-light); }
+  .item-card.just-checked {
+    animation: checkSlide 0.4s ease;
+  }
+  @keyframes checkSlide {
+    0% { transform: scale(1); }
+    30% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+
+  .item-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    border: 2.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: transparent;
+    background: white;
+  }
+  .item-card.checked .item-check {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .item-qty {
+    font-size: 0.72rem;
+    color: var(--text-mid);
+    margin-top: 0.1rem;
+  }
+
+  .item-user {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .item-user.sam { background: var(--sam); }
+  .item-user.alexa { background: var(--alexa); }
+
+  .item-delete {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .item-card:hover .item-delete,
+  .item-card:active .item-delete { opacity: 1; }
+  @media (hover: none) { .item-delete { opacity: 0.4; } }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+  .empty-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.3rem;
+  }
+  .empty-sub {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 0.4rem 0.5rem;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.4rem);
+    z-index: 100;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.4rem 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn.active { color: var(--primary); }
+  .nav-icon { font-size: 1.3rem; }
+  .nav-label { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.3px; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* SAVED LISTS */
+  .saved-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 1rem;
+    margin: 0 1rem 0.6rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .saved-card:active { transform: scale(0.98); }
+  .saved-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .saved-info { flex: 1; min-width: 0; }
+  .saved-name {
+    font-family: 'Fraunces', serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .saved-meta {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    margin-top: 0.1rem;
+  }
+  .saved-actions {
+    display: flex;
+    gap: 0.3rem;
+  }
+  .saved-action-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .saved-action-btn.delete { background: var(--accent-light); color: var(--accent); }
+
+  /* FREQUENT ITEMS */
+  .freq-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0 1rem;
+  }
+  .freq-chip {
+    padding: 0.5rem 0.9rem;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .freq-chip:active { transform: scale(0.95); background: var(--primary-light); border-color: var(--primary); }
+
+  .section-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text);
+    padding: 1rem 1.2rem 0.6rem;
+  }
+
+  /* SAVE LIST MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-panel {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 500px;
+    padding: 1.5rem;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
+    animation: modalUp 0.3s ease;
+  }
+  @keyframes modalUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  .modal-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: var(--primary); }
+  .modal-actions {
+    display: flex;
+    gap: 0.6rem;
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .modal-btn:active { transform: scale(0.97); }
+  .modal-btn-cancel { background: #F0F0F0; color: var(--text-mid); }
+  .modal-btn-save { background: var(--primary); color: white; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--primary-dark);
+    color: white;
+    padding: 0.7rem 1.2rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 300;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* CONNECTION STATUS */
+  .connection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4CAF50;
+    display: inline-block;
+    margin-right: 0.3rem;
+  }
+  .connection-dot.offline { background: #F44336; }
+
+  @media (max-width: 500px) {
+    .app-header { padding: 1rem 1rem 0.8rem; padding-top: calc(env(safe-area-inset-top, 0px) + 1rem); }
+    .app-title { font-size: 1.2rem; }
+    .aisle-header { top: 110px; }
+    .item-card { padding: 0.6rem 0.7rem; gap: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-top">
+    <div class="app-title">🥬 Cart<span>Mate</span></div>
+    <div class="header-actions">
+      <button class="header-btn" onclick="openSaveModal()" title="Save list">💾</button>
+    </div>
+  </div>
+  <div class="user-picker">
+    <button class="user-chip active-sam" id="userSam" onclick="setUser('sam')">🧔 Sam</button>
+    <button class="user-chip" id="userAlexa" onclick="setUser('alexa')">👩 Alexa</button>
+  </div>
+  <div class="add-bar">
+    <input class="add-input" id="addInput" type="text" placeholder="Add an item..." autocomplete="off" onkeyup="onInputChange(event)" onkeydown="if(event.key==='Enter')addItem()">
+    <button class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Voice input">🎤</button>
+    <button class="add-btn" onclick="addItem()">+</button>
+  </div>
+  <div class="category-hint" id="categoryHint"></div>
+</div>
+
+<!-- SHOPPING LIST PANEL -->
+<div class="panel active" id="panelList">
+  <div class="stats-bar" id="statsBar"></div>
+  <div id="listContent"></div>
+</div>
+
+<!-- SAVED LISTS PANEL -->
+<div class="panel" id="panelSaved">
+  <div class="section-title">Saved Lists</div>
+  <div id="savedContent"></div>
+</div>
+
+<!-- FREQUENT ITEMS PANEL -->
+<div class="panel" id="panelFrequent">
+  <div class="section-title">Frequently Bought</div>
+  <div class="freq-grid" id="freqContent"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" data-panel="panelList" onclick="switchPanel('panelList')">
+    <span class="nav-icon">📋</span><span class="nav-label">List</span>
+  </button>
+  <button class="nav-btn" data-panel="panelSaved" onclick="switchPanel('panelSaved')">
+    <span class="nav-icon">📁</span><span class="nav-label">Saved</span>
+  </button>
+  <button class="nav-btn" data-panel="panelFrequent" onclick="switchPanel('panelFrequent')">
+    <span class="nav-icon">⭐</span><span class="nav-label">Frequent</span>
+  </button>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal" onclick="if(event.target===this)closeSaveModal()">
+  <div class="modal-panel">
+    <div class="modal-title">💾 Save Current List</div>
+    <input class="modal-input" id="saveNameInput" type="text" placeholder="List name (e.g. Weekly Staples)">
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeSaveModal()">Cancel</button>
+      <button class="modal-btn modal-btn-save" onclick="saveCurrentList()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// === AISLE CONFIG ===
+const AISLES = [
+  { key: 'produce', name: 'Produce', icon: '🥬', order: 1, keywords: ['apple','banana','avocado','tomato','potato','onion','garlic','pepper','lettuce','spinach','kale','carrot','celery','cucumber','broccoli','mushroom','corn','lemon','lime','orange','grape','berry','blueberry','strawberry','raspberry','mango','watermelon','peach','pear','zucchini','squash','asparagus','green bean','cilantro','basil','parsley','mint','ginger','jalapeño','cabbage','cauliflower','sweet potato','herb','fruit','vegetable','salad','arugula','radish','beet','pineapple','melon','plum','cherry','fig'] },
+  { key: 'meat', name: 'Meat & Seafood', icon: '🥩', order: 2, keywords: ['chicken','beef','pork','steak','ground','turkey','bacon','sausage','ham','lamb','salmon','shrimp','fish','tilapia','tuna','cod','crab','lobster','ribs','brisket','wing','thigh','breast','tenderloin','chop','roast','meatball','burger','patty','hot dog','bratwurst','chorizo','prosciutto','deli meat','seafood'] },
+  { key: 'dairy', name: 'Dairy & Eggs', icon: '🥛', order: 3, keywords: ['milk','egg','cheese','yogurt','butter','cream','sour cream','cream cheese','cottage cheese','mozzarella','cheddar','parmesan','swiss','brie','feta','gouda','half and half','whipping cream','oat milk','almond milk','creamer','ricotta'] },
+  { key: 'deli', name: 'Deli', icon: '🥪', order: 4, keywords: ['deli','hummus','rotisserie','sub','sandwich','salami','pastrami','olive','pickle','pepperoni'] },
+  { key: 'bakery', name: 'Bakery & Bread', icon: '🍞', order: 5, keywords: ['bread','bagel','tortilla','bun','roll','croissant','muffin','donut','cake','pie','pita','naan','english muffin','baguette','sourdough','wrap'] },
+  { key: 'frozen', name: 'Frozen', icon: '🧊', order: 6, keywords: ['frozen','ice cream','pizza','waffle','french fries','tater tot','popsicle','frozen fruit','frozen vegetable','frozen dinner','gelato','sorbet'] },
+  { key: 'pantry', name: 'Pantry & Canned', icon: '🥫', order: 7, keywords: ['rice','pasta','sauce','soup','bean','canned','cereal','oat','flour','sugar','oil','vinegar','soy sauce','ketchup','mustard','mayo','salsa','broth','stock','peanut butter','jelly','jam','honey','syrup','seasoning','spice','salt','pepper','cumin','paprika','cinnamon','baking','chip','cracker','pretzel','popcorn','nut','almond','cashew','walnut','granola','noodle','ramen','mac and cheese','taco','tortilla chip','dressing','hot sauce','bbq sauce','sriracha','olive oil','coconut oil','tomato paste','tomato sauce','diced tomato'] },
+  { key: 'snacks', name: 'Snacks & Drinks', icon: '🥤', order: 8, keywords: ['water','juice','soda','coffee','tea','energy drink','gatorade','sparkling','seltzer','kombucha','lemonade','smoothie','protein','bar','cookie','candy','chocolate','snack','trail mix','dried fruit','jerky','fruit snack','goldfish','oreo'] },
+  { key: 'alcohol', name: 'Alcohol', icon: '🍷', order: 9, keywords: ['beer','wine','vodka','whiskey','bourbon','tequila','rum','gin','seltzer','hard','cider','champagne','prosecco','merlot','cabernet','chardonnay','ipa','lager','ale','margarita','cocktail','mixer'] },
+  { key: 'household', name: 'Household & Cleaning', icon: '🧹', order: 10, keywords: ['paper towel','toilet paper','napkin','trash bag','plastic bag','aluminum foil','plastic wrap','sponge','soap','dish soap','detergent','bleach','cleaner','disinfectant','wipe','dryer sheet','fabric softener','broom','mop','light bulb','battery','candle','air freshener','zip lock','ziploc','tupperware'] },
+  { key: 'health', name: 'Health & Personal Care', icon: '💊', order: 11, keywords: ['vitamin','medicine','advil','tylenol','ibuprofen','bandaid','band-aid','toothpaste','toothbrush','floss','shampoo','conditioner','body wash','lotion','sunscreen','deodorant','razor','cotton','tissue','q-tip','tampon','pad','contact','saline'] }
+];
+
+function detectCategory(text) {
+  var lower = text.toLowerCase();
+  for (var a = 0; a < AISLES.length; a++) {
+    for (var k = 0; k < AISLES[a].keywords.length; k++) {
+      if (lower.includes(AISLES[a].keywords[k])) return AISLES[a].key;
+    }
+  }
+  return 'pantry'; // default
+}
+
+function getAisle(key) {
+  return AISLES.find(function(a) { return a.key === key; }) || AISLES[6]; // pantry default
+}
+
+// === STATE ===
+var currentUser = 'sam';
+var items = [];
+var savedLists = [];
+var frequentItems = {};
+
+function loadState() {
+  try {
+    items = JSON.parse(localStorage.getItem('cartmate_items') || '[]');
+    savedLists = JSON.parse(localStorage.getItem('cartmate_saved') || '[]');
+    frequentItems = JSON.parse(localStorage.getItem('cartmate_freq') || '{}');
+  } catch(e) {
+    items = []; savedLists = []; frequentItems = {};
+  }
+}
+function saveState() {
+  try {
+    localStorage.setItem('cartmate_items', JSON.stringify(items));
+    localStorage.setItem('cartmate_saved', JSON.stringify(savedLists));
+    localStorage.setItem('cartmate_freq', JSON.stringify(frequentItems));
+  } catch(e) {}
+}
+
+// === PARSE QUANTITY ===
+function parseItem(text) {
+  text = text.trim();
+  // Match patterns like "2 lbs chicken", "3x milk", "1 dozen eggs"
+  var match = text.match(/^(\d+\.?\d*)\s*(lbs?|oz|kg|g|dozen|doz|x|ct|count|pack|bunch|bag|box|can|bottle|jar|gallon|gal|qt|quart|pint|pt|liter|l|cups?|tbsp|tsp)?\s*(.+)/i);
+  if (match) {
+    return { qty: parseFloat(match[1]), unit: (match[2] || '').toLowerCase(), name: match[3].trim() };
+  }
+  // Just a number prefix
+  var numMatch = text.match(/^(\d+)\s+(.+)/);
+  if (numMatch) {
+    return { qty: parseInt(numMatch[1]), unit: '', name: numMatch[2].trim() };
+  }
+  return { qty: 1, unit: '', name: text };
+}
+
+// === USER ===
+function setUser(user) {
+  currentUser = user;
+  document.getElementById('userSam').className = 'user-chip' + (user === 'sam' ? ' active-sam' : '');
+  document.getElementById('userAlexa').className = 'user-chip' + (user === 'alexa' ? ' active-alexa' : '');
+}
+
+// === ADD ITEM ===
+function addItem(nameOverride) {
+  var input = document.getElementById('addInput');
+  var text = nameOverride || input.value.trim();
+  if (!text) return;
+
+  var parsed = parseItem(text);
+  var category = detectCategory(parsed.name);
+
+  var item = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    name: parsed.name,
+    qty: parsed.qty,
+    unit: parsed.unit,
+    category: category,
+    addedBy: currentUser,
+    checked: false,
+    checkedBy: null,
+    timestamp: Date.now()
+  };
+
+  items.push(item);
+
+  // Track frequent
+  var fKey = parsed.name.toLowerCase();
+  if (!frequentItems[fKey]) frequentItems[fKey] = { name: parsed.name, count: 0, category: category };
+  frequentItems[fKey].count++;
+  frequentItems[fKey].lastUsed = Date.now();
+
+  saveState();
+  renderList();
+  if (!nameOverride) { input.value = ''; document.getElementById('categoryHint').innerHTML = ''; }
+  input.focus();
+}
+
+// === CHECK / DELETE ===
+function toggleCheck(id) {
+  var item = items.find(function(i) { return i.id === id; });
+  if (item) {
+    item.checked = !item.checked;
+    item.checkedBy = item.checked ? currentUser : null;
+    saveState();
+    // Animate
+    var card = document.querySelector('[data-id="' + id + '"]');
+    if (card && item.checked) card.classList.add('just-checked');
+    setTimeout(function() { renderList(); }, item.checked ? 400 : 0);
+  }
+}
+
+function deleteItem(id, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  items = items.filter(function(i) { return i.id !== id; });
+  saveState();
+  renderList();
+}
+
+function clearChecked() {
+  items = items.filter(function(i) { return !i.checked; });
+  saveState();
+  renderList();
+  showToast('Cleared checked items');
+}
+
+// === RENDER LIST ===
+function renderList() {
+  var el = document.getElementById('listContent');
+  var stats = document.getElementById('statsBar');
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🛒</div><div class="empty-title">Your cart is empty</div><div class="empty-sub">Type an item above or tap the mic to add by voice</div></div>';
+    stats.innerHTML = '';
+    return;
+  }
+
+  var total = items.length;
+  var checked = items.filter(function(i) { return i.checked; }).length;
+  var unchecked = total - checked;
+
+  stats.innerHTML = '<div class="stats-text"><strong>' + unchecked + '</strong> item' + (unchecked !== 1 ? 's' : '') + ' remaining' + (checked > 0 ? ' · <strong>' + checked + '</strong> done' : '') + '</div>' +
+    (checked > 0 ? '<button class="clear-done-btn" onclick="clearChecked()">Clear done</button>' : '');
+
+  // Group by aisle, unchecked first
+  var uncheckedItems = items.filter(function(i) { return !i.checked; });
+  var checkedItems = items.filter(function(i) { return i.checked; });
+
+  // Group unchecked by category
+  var groups = {};
+  uncheckedItems.forEach(function(item) {
+    if (!groups[item.category]) groups[item.category] = [];
+    groups[item.category].push(item);
+  });
+
+  // Sort groups by aisle order
+  var sortedKeys = Object.keys(groups).sort(function(a, b) {
+    return getAisle(a).order - getAisle(b).order;
+  });
+
+  var html = '';
+  sortedKeys.forEach(function(key) {
+    var aisle = getAisle(key);
+    var aisleItems = groups[key];
+    html += '<div class="aisle-group">';
+    html += '<div class="aisle-header"><span class="aisle-icon">' + aisle.icon + '</span><span class="aisle-name">' + aisle.name + '</span><span class="aisle-count">' + aisleItems.length + '</span></div>';
+    aisleItems.forEach(function(item) {
+      html += renderItemCard(item);
+    });
+    html += '</div>';
+  });
+
+  // Checked items at bottom
+  if (checkedItems.length) {
+    html += '<div class="aisle-group">';
+    html += '<div class="aisle-header"><span class="aisle-icon">✅</span><span class="aisle-name">Done</span><span class="aisle-count">' + checkedItems.length + '</span></div>';
+    checkedItems.forEach(function(item) {
+      html += renderItemCard(item);
+    });
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+function renderItemCard(item) {
+  var qtyText = '';
+  if (item.qty > 1 || item.unit) {
+    qtyText = item.qty + (item.unit ? ' ' + item.unit : '');
+  }
+  var userClass = item.addedBy === 'sam' ? 'sam' : 'alexa';
+  var userLabel = item.addedBy === 'sam' ? 'S' : 'A';
+
+  return '<div class="item-card' + (item.checked ? ' checked' : '') + '" data-id="' + item.id + '" onclick="toggleCheck(\'' + item.id + '\')">' +
+    '<div class="item-check">' + (item.checked ? '✓' : '') + '</div>' +
+    '<div class="item-info">' +
+      '<div class="item-name">' + item.name + '</div>' +
+      (qtyText ? '<div class="item-qty">' + qtyText + '</div>' : '') +
+    '</div>' +
+    '<div class="item-user ' + userClass + '">' + userLabel + '</div>' +
+    '<button class="item-delete" onclick="deleteItem(\'' + item.id + '\', event)">✕</button>' +
+  '</div>';
+}
+
+// === INPUT HINT ===
+function onInputChange(e) {
+  var text = e.target.value.trim();
+  var hint = document.getElementById('categoryHint');
+  if (text.length < 2) { hint.innerHTML = ''; return; }
+  if (e.key === 'Enter') return;
+  var parsed = parseItem(text);
+  var cat = detectCategory(parsed.name);
+  var aisle = getAisle(cat);
+  hint.innerHTML = '→ <em>' + aisle.icon + ' ' + aisle.name + '</em>';
+}
+
+// === VOICE INPUT ===
+var recognition = null;
+var isRecording = false;
+
+function toggleVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('Voice input not supported on this device');
+    return;
+  }
+  if (isRecording) {
+    recognition.stop();
+    return;
+  }
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+
+  recognition.onstart = function() {
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+  };
+  recognition.onresult = function(e) {
+    var text = e.results[0][0].transcript;
+    document.getElementById('addInput').value = text;
+    // Trigger hint
+    onInputChange({ target: { value: text }, key: '' });
+    addItem();
+  };
+  recognition.onend = function() {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+  };
+  recognition.onerror = function() {
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    showToast('Could not hear you — try again');
+  };
+  recognition.start();
+}
+
+// === SAVED LISTS ===
+function openSaveModal() {
+  document.getElementById('saveModal').classList.add('open');
+  var input = document.getElementById('saveNameInput');
+  input.value = '';
+  setTimeout(function() { input.focus(); }, 300);
+}
+function closeSaveModal() {
+  document.getElementById('saveModal').classList.remove('open');
+}
+function saveCurrentList() {
+  var name = document.getElementById('saveNameInput').value.trim();
+  if (!name) { showToast('Enter a name for this list'); return; }
+  var unchecked = items.filter(function(i) { return !i.checked; });
+  if (!unchecked.length) { showToast('No items to save'); return; }
+  savedLists.push({
+    id: Date.now().toString(),
+    name: name,
+    items: unchecked.map(function(i) { return { name: i.name, qty: i.qty, unit: i.unit, category: i.category }; }),
+    created: Date.now()
+  });
+  saveState();
+  closeSaveModal();
+  showToast('Saved "' + name + '"');
+  renderSaved();
+}
+
+function loadSavedList(id) {
+  var list = savedLists.find(function(l) { return l.id === id; });
+  if (!list) return;
+  list.items.forEach(function(si) {
+    items.push({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      name: si.name,
+      qty: si.qty,
+      unit: si.unit,
+      category: si.category,
+      addedBy: currentUser,
+      checked: false,
+      checkedBy: null,
+      timestamp: Date.now()
+    });
+  });
+  saveState();
+  switchPanel('panelList');
+  renderList();
+  showToast('Loaded "' + list.name + '" — ' + list.items.length + ' items added');
+}
+
+function deleteSavedList(id, e) {
+  if (e) e.stopPropagation();
+  savedLists = savedLists.filter(function(l) { return l.id !== id; });
+  saveState();
+  renderSaved();
+  showToast('List deleted');
+}
+
+function renderSaved() {
+  var el = document.getElementById('savedContent');
+  if (!savedLists.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📁</div><div class="empty-title">No saved lists yet</div><div class="empty-sub">Tap 💾 to save your current list as a template</div></div>';
+    return;
+  }
+  var html = '';
+  savedLists.forEach(function(list) {
+    var date = new Date(list.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    html += '<div class="saved-card" onclick="loadSavedList(\'' + list.id + '\')">' +
+      '<div class="saved-icon">📋</div>' +
+      '<div class="saved-info"><div class="saved-name">' + list.name + '</div><div class="saved-meta">' + list.items.length + ' items · Saved ' + date + '</div></div>' +
+      '<div class="saved-actions">' +
+        '<button class="saved-action-btn delete" onclick="deleteSavedList(\'' + list.id + '\', event)" title="Delete">🗑️</button>' +
+      '</div>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// === FREQUENT ITEMS ===
+function renderFrequent() {
+  var el = document.getElementById('freqContent');
+  var sorted = Object.values(frequentItems).sort(function(a, b) { return b.count - a.count; });
+  if (!sorted.length) {
+    el.innerHTML = '<div class="empty-state" style="width:100%"><div class="empty-icon">⭐</div><div class="empty-title">No history yet</div><div class="empty-sub">Items you add will appear here for quick re-adding</div></div>';
+    return;
+  }
+  var html = '';
+  sorted.slice(0, 30).forEach(function(f) {
+    var escapedName = f.name.replace(/'/g, "\\'");
+    html += '<button class="freq-chip" onclick="addItem(\'' + escapedName + '\')">' + f.name + '</button>';
+  });
+  el.innerHTML = html;
+}
+
+// === NAVIGATION ===
+function switchPanel(id) {
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelector('.nav-btn[data-panel="' + id + '"]').classList.add('active');
+  if (id === 'panelSaved') renderSaved();
+  if (id === 'panelFrequent') renderFrequent();
+}
+
+// === TOAST ===
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+// === INIT ===
+loadState();
+renderList();
+</script>
+</body>
+</html>
